@@ -11,7 +11,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Pull code explicitly from your GitHub repository
-                git branch: 'master', url: 'https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git'
+                git branch: 'main', url: 'https://github.com/Elakiya-30/Ci-Cd-Game-Deployment.git'
             }
         }
         
@@ -50,7 +50,7 @@ pipeline {
                         
                         // Retry loop for the health check up to 5 times
                         retry(5) {
-                            sleep time: 10, unit: 'SECONDS'
+                            sleep time: 60, unit: 'SECONDS'
                             def response = sh(script: "curl -s -o /dev/null -w '%{http_code}' http://${ALBDns}", returnStdout: true).trim()
                             if (response != "200") {
                                 error "Health check failed with HTTP code ${response}"

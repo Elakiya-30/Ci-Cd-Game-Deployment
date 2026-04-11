@@ -1,6 +1,6 @@
-# Terraform required providers and backend block
 terraform {
   required_version = ">= 1.5.0"
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -9,11 +9,12 @@ terraform {
   }
 
   backend "s3" {
-    bucket         = "my-game-terraform-state-bucket-unique" # REPLACE THIS
-    key            = "dev/terraform.tfstate"
-    region         = "ap-south-1"
-    dynamodb_table = "terraform-state-locking"              # REPLACE THIS
-    encrypt        = true
+    bucket  = "my-game-terraform-state-bucket-elakiya-123"
+    key     = "dev/terraform.tfstate"
+    region  = "ap-south-1"
+    encrypt = true
+    # optional:
+    # use_lockfile = true
   }
 }
 
