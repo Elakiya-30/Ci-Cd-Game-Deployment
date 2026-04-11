@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Phoenix Project</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div class="ui-layer">
+            <div class="header">
+                <div class="score-display">SCORE: <span id="score">0</span></div>
+                <div class="title-small" style="color: #ff5e00; text-shadow: 0 0 10px #ff0000; letter-spacing: 2px;">PHOENIX</div>
+            </div>
+            <div class="controls">
+                <div class="ctrl-group">
+                    <div class="ctrl-btn" id="btn-left">◁</div>
+                    <div class="ctrl-btn" id="btn-right">▷</div>
+                </div>
+                <div class="ctrl-btn" id="btn-fire">○</div>
+            </div>
+        </div>
+        
+        <div class="screen" id="start-screen">
+            <div class="title">PHOENIX<br>PROJECT</div>
+            <button class="btn" id="start-btn">ENGAGE</button>
+            <div class="instructions">Arrow Keys to Move • Space to Shoot</div>
+        </div>
+        
+        <div class="screen hidden" id="game-over-screen">
+            <div class="title" style="color: #ff0000; text-shadow: 0 0 20px #ff0000; font-size: 4rem;">SYSTEM FAILURE</div>
+            <h2 style="font-size: 2.5rem; margin-bottom: 30px; letter-spacing: 2px;">FINAL SCORE: <span id="final-score" style="color: #0ff; text-shadow: 0 0 10px #0ff;">0</span></h2>
+            <button class="btn" id="restart-btn">REBOOT SYSTEM</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

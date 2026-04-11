@@ -1,0 +1,165 @@
+@import url('https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&display=swap');
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #000;
+    color: #fff;
+    font-family: 'Teko', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+    touch-action: none; 
+}
+
+#game-container {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    height: 100vh;
+    max-height: 800px;
+    box-shadow: 0 0 50px rgba(0, 255, 255, 0.1);
+    border-left: 2px solid rgba(0,255,255,0.2);
+    border-right: 2px solid rgba(0,255,255,0.2);
+    background: #000;
+    overflow: hidden;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.ui-layer {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    padding: 15px 25px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.score-display {
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+    color: #0ff;
+}
+
+.screen {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(5, 5, 12, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    pointer-events: auto;
+    transition: opacity 0.4s ease;
+    z-index: 10;
+}
+
+.screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.title {
+    font-size: 5rem;
+    line-height: 0.9;
+    color: #ff5e00;
+    text-transform: uppercase;
+    letter-spacing: 6px;
+    text-shadow: 0 0 20px #ff5e00, 0 0 40px #ff0000;
+    margin-bottom: 40px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.btn {
+    padding: 10px 40px;
+    background: rgba(0, 255, 255, 0.05);
+    color: #0ff;
+    border: 2px solid #0ff;
+    font-size: 2rem;
+    font-family: inherit;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    cursor: pointer;
+    border-radius: 4px;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4), inset 0 0 15px rgba(0,255,255,0.2);
+    transition: all 0.2s;
+    pointer-events: auto;
+}
+
+.btn:hover {
+    background: rgba(0, 255, 255, 0.2);
+    text-shadow: 0 0 10px #0ff;
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.6), inset 0 0 20px rgba(0,255,255,0.4);
+    transform: scale(1.05);
+}
+
+.btn:active {
+    transform: scale(0.95);
+}
+
+.instructions {
+    margin-top: 30px;
+    font-size: 1.5rem;
+    color: #aaa;
+    letter-spacing: 1px;
+}
+
+.controls {
+    position: absolute;
+    bottom: 30px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 30px;
+    box-sizing: border-box;
+    pointer-events: none;
+}
+
+.ctrl-group {
+    display: flex;
+    gap: 15px;
+}
+
+.ctrl-btn {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: rgba(0, 255, 255, 0.1);
+    border: 2px solid rgba(0, 255, 255, 0.3);
+    color: #0ff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 32px;
+    pointer-events: auto;
+    user-select: none;
+    -webkit-user-select: none;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+    transition: background 0.1s;
+}
+
+.ctrl-btn:active {
+    background: rgba(0, 255, 255, 0.4);
+    box-shadow: 0 0 25px rgba(0, 255, 255, 0.5);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .controls { display: none; }
+}
