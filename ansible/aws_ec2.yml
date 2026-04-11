@@ -2,13 +2,13 @@ plugin: aws_ec2
 regions:
   - ap-south-1
 
-# Filter by instances tagged by our Terraform ASG
+
 filters:
   tag:Role:
     - webserver
   instance-state-name : running
 
-# Since instances are private and we connect via SSM, we use the instance-id as the host
-# The proxy command in ansible.cfg will use this ID (%h) to start the SSM session
+
+
 compose:
   ansible_host: instance_id
