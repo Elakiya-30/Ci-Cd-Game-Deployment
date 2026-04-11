@@ -8,22 +8,57 @@ pipeline {
     }
     
     stages {
+
         stage('Checkout') {
             steps {
-                // Pull code explicitly from your GitHub repository
                 git branch: 'main', url: 'https://github.com/Elakiya-30/Ci-Cd-Game-Deployment.git'
             }
         }
-        
-        stage('Terraform Init & Plan') {
+
+        // ✅ Step 1: Create S3 bucket (without backend)
+        stage('Create S3 Bucket') {
             steps {
                 dir("${TF_DIR}") {
-                    sh 'terraform init'
+                    sh '''
+                    # remove backend temporarily
+                    sed -i '/backend "s3"/,/}/d' provider.tf
+
+                    terraform init
+                    terraform apply -auto-approve
+                    '''
+                }
+            }
+        }
+
+        // ✅ Sleep (wait for AWS consistency)
+        stage('Sleep') {
+            steps {
+                sleep time: 60, unit: 'SECONDS'
+            }
+        }
+
+        // ✅ Step 2: Re-enable backend
+        stage('Terraform Init (Backend)') {
+            steps {
+                dir("${TF_DIR}") {
+                    sh '''
+                    git checkout provider.tf
+                    terraform init -reconfigure
+                    '''
+                }
+            }
+        }
+
+        // ✅ Plan
+        stage('Terraform Plan') {
+            steps {
+                dir("${TF_DIR}") {
                     sh 'terraform plan -out=tfplan'
                 }
             }
         }
-        
+
+        // ✅ Apply
         stage('Terraform Apply') {
             steps {
                 dir("${TF_DIR}") {
@@ -31,24 +66,24 @@ pipeline {
                 }
             }
         }
-        
+
+        // ✅ Ansible
         stage('Ansible Configuration') {
             steps {
                 dir("${ANSIBLE_DIR}") {
-                    // Make sure AWS credentials are available in environment for aws_ec2 plugin
                     sh 'ansible-playbook playbook.yml'
                 }
             }
         }
-        
+
+        // ✅ Health Check
         stage('Health Check') {
             steps {
                 dir("${TF_DIR}") {
                     script {
                         def ALBDns = sh(script: 'terraform output -raw alb_dns_name', returnStdout: true).trim()
                         echo "ALB is at: ${ALBDns}"
-                        
-                        // Retry loop for the health check up to 5 times
+
                         retry(5) {
                             sleep time: 60, unit: 'SECONDS'
                             def response = sh(script: "curl -s -o /dev/null -w '%{http_code}' http://${ALBDns}", returnStdout: true).trim()
@@ -56,7 +91,6 @@ pipeline {
                                 error "Health check failed with HTTP code ${response}"
                             }
                         }
-                        echo "Game is successfully deployed and reachable!"
                     }
                 }
             }
@@ -65,9 +99,7 @@ pipeline {
     
     post {
         failure {
-            echo "Pipeline failed. Executing manual rollback steps or sending alerts."
-            // In a real environment, you might run `terraform destroy` but it's dangerous without approval.
-            // Sending an alert is better.
+            echo "Pipeline failed."
         }
         success {
             echo "Pipeline completed successfully!"
