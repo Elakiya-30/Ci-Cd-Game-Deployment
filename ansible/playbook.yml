@@ -1,0 +1,6 @@
+---
+- name: Deploy Game to Private EC2 Instances
+  hosts: all
+  become: yes
+  roles:
+    - webserver
