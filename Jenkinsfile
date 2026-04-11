@@ -15,30 +15,29 @@ pipeline {
             }
         }
 
-        
-        stage('Create S3 Bucket') {
+        // ✅ STEP 1: Create ONLY S3 bucket
+        stage('Create S3 Backend') {
             steps {
                 dir("${TF_DIR}") {
                     sh '''
-                    # remove backend temporarily
                     sed -i '/backend "s3"/,/}/d' provider.tf
 
                     terraform init
-                    terraform apply -auto-approve
+                    terraform apply -target=aws_s3_bucket.tf_state -auto-approve
                     '''
                 }
             }
         }
 
-        
+        // ✅ Wait
         stage('Sleep') {
             steps {
                 sleep time: 60, unit: 'SECONDS'
             }
         }
 
-        
-        stage('Terraform Init (Backend)') {
+        // ✅ STEP 2: Enable backend
+        stage('Init Backend') {
             steps {
                 dir("${TF_DIR}") {
                     sh '''
@@ -49,7 +48,7 @@ pipeline {
             }
         }
 
-        
+        // ✅ STEP 3: FULL INFRA create
         stage('Terraform Plan') {
             steps {
                 dir("${TF_DIR}") {
@@ -58,7 +57,6 @@ pipeline {
             }
         }
 
-        
         stage('Terraform Apply') {
             steps {
                 dir("${TF_DIR}") {
@@ -67,7 +65,7 @@ pipeline {
             }
         }
 
-        
+        // ✅ Ansible
         stage('Ansible Configuration') {
             steps {
                 dir("${ANSIBLE_DIR}") {
@@ -76,33 +74,24 @@ pipeline {
             }
         }
 
-        
+        // ✅ Health Check
         stage('Health Check') {
             steps {
                 dir("${TF_DIR}") {
                     script {
                         def ALBDns = sh(script: 'terraform output -raw alb_dns_name', returnStdout: true).trim()
-                        echo "ALB is at: ${ALBDns}"
+                        echo "ALB: ${ALBDns}"
 
                         retry(5) {
                             sleep time: 60, unit: 'SECONDS'
                             def response = sh(script: "curl -s -o /dev/null -w '%{http_code}' http://${ALBDns}", returnStdout: true).trim()
                             if (response != "200") {
-                                error "Health check failed with HTTP code ${response}"
+                                error "Health check failed: ${response}"
                             }
                         }
                     }
                 }
             }
-        }
-    }
-    
-    post {
-        failure {
-            echo "Pipeline failed."
-        }
-        success {
-            echo "Pipeline completed successfully!"
         }
     }
 }
