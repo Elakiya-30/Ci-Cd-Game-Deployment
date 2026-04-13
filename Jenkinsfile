@@ -15,7 +15,7 @@ pipeline {
             }
         }
 
-        // ✅ STEP 1: Create ONLY S3 bucket
+        
         stage('Create S3 Backend') {
             steps {
                 dir("${TF_DIR}") {
@@ -29,14 +29,14 @@ pipeline {
             }
         }
 
-        // ✅ Wait
+        
         stage('Sleep') {
             steps {
                 sleep time: 60, unit: 'SECONDS'
             }
         }
 
-        // ✅ STEP 2: Enable backend
+        
         stage('Init Backend') {
             steps {
                 dir("${TF_DIR}") {
@@ -48,7 +48,7 @@ pipeline {
             }
         }
 
-        // ✅ STEP 3: FULL INFRA create
+        
         stage('Terraform Plan') {
             steps {
                 dir("${TF_DIR}") {
@@ -65,7 +65,7 @@ pipeline {
             }
         }
 
-        // ✅ Ansible
+        
         stage('Ansible Configuration') {
             steps {
                 dir("${ANSIBLE_DIR}") {
@@ -74,7 +74,7 @@ pipeline {
             }
         }
 
-        // ✅ Health Check
+        
         stage('Health Check') {
             steps {
                 dir("${TF_DIR}") {
