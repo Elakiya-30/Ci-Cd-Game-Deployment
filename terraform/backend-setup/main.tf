@@ -1,28 +1,43 @@
-# Random ID to ensure the S3 bucket name is globally unique
-resource "random_id" "bucket_suffix" {
-  byte_length = 4
-}
+terraform {
+  required_version = ">= 1.5.0"
 
-# 1. S3 Bucket for Terraform State
-resource "aws_s3_bucket" "terraform_state" {
-  bucket = "aws-game-terraform-state-${random_id.bucket_suffix.hex}"
-  
-  lifecycle {
-    prevent_destroy = true # Prevents accidental deletion of the state bucket
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
   }
 }
 
-# Enable Versioning
+provider "aws" {
+  region = "ap-south-1"
+}
+
+resource "aws_s3_bucket" "terraform_state" {
+  bucket = "my-game-terraform-state-bucket-elakiya-123"
+
+  lifecycle {
+    prevent_destroy = true
+  }
+
+  tags = {
+    Name        = "Terraform State Bucket"
+    Environment = "dev"
+    Project     = "aws-game"
+  }
+}
+
 resource "aws_s3_bucket_versioning" "terraform_state_versioning" {
   bucket = aws_s3_bucket.terraform_state.id
+
   versioning_configuration {
     status = "Enabled"
   }
 }
 
-# Enable Server-Side Encryption by default
 resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_state_crypto" {
   bucket = aws_s3_bucket.terraform_state.id
+
   rule {
     apply_server_side_encryption_by_default {
       sse_algorithm = "AES256"
@@ -30,16 +45,15 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_state_c
   }
 }
 
-# Block all public access to the S3 bucket
 resource "aws_s3_bucket_public_access_block" "terraform_state_public_access" {
-  bucket                  = aws_s3_bucket.terraform_state.id
+  bucket = aws_s3_bucket.terraform_state.id
+
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
 }
 
-# 2. DynamoDB Table for State Locking
 resource "aws_dynamodb_table" "terraform_locks" {
   name         = "game-terraform-state-locking"
   billing_mode = "PAY_PER_REQUEST"
@@ -49,15 +63,20 @@ resource "aws_dynamodb_table" "terraform_locks" {
     name = "LockID"
     type = "S"
   }
+
+  tags = {
+    Name        = "Terraform State Lock Table"
+    Environment = "dev"
+    Project     = "aws-game"
+  }
 }
 
-# Output the names so you can copy-paste them into your main provider.tf
 output "s3_bucket_name" {
   value       = aws_s3_bucket.terraform_state.bucket
-  description = "COPY THIS into the 'bucket' field of your main provider.tf backend block"
+  description = "Terraform backend S3 bucket name"
 }
 
 output "dynamodb_table_name" {
   value       = aws_dynamodb_table.terraform_locks.name
-  description = "COPY THIS into the 'dynamodb_table' field of your main provider.tf backend block"
+  description = "Terraform backend DynamoDB lock table name"
 }
