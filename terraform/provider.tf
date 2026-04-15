@@ -9,12 +9,11 @@ terraform {
   }
 
   backend "s3" {
-    bucket  = "my-game-terraform-state-bucket-elakiya-123"
-    key     = "dev/terraform.tfstate"
-    region  = "ap-south-1"
-    encrypt = true
-    # optional:
-    # use_lockfile = true
+    bucket         = "my-game-terraform-state-bucket-elakiya-123"
+    key            = "dev/terraform.tfstate"
+    region         = "ap-south-1"
+    encrypt        = true
+    dynamodb_table = "game-terraform-state-locking"
   }
 }
 
