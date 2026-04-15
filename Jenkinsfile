@@ -1,54 +1,51 @@
 pipeline {
     agent any
-    
+
     environment {
-        AWS_REGION = "ap-south-1"
-        TF_DIR = "terraform"
+        AWS_REGION  = "ap-south-1"
+        TF_DIR      = "terraform"
+        BACKEND_DIR = "terraform/backend-setup"
         ANSIBLE_DIR = "ansible"
     }
-    
-    stages {
 
+    stages {
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/Elakiya-30/Ci-Cd-Game-Deployment.git'
             }
         }
 
-        
-        stage('Create S3 Backend') {
+        stage('Create Backend Infra') {
             steps {
-                dir("${TF_DIR}") {
+                dir("${BACKEND_DIR}") {
                     sh '''
-                    sed -i '/backend "s3"/,/}/d' provider.tf
-
-                    terraform init
-                    terraform apply -target=aws_s3_bucket.tf_state -auto-approve
+                        terraform init
+                        terraform apply -auto-approve
                     '''
                 }
             }
         }
 
-        
-        stage('Sleep') {
+        stage('Verify Backend') {
             steps {
-                sleep time: 60, unit: 'SECONDS'
+                sh '''
+                    aws s3api head-bucket --bucket my-game-terraform-state-bucket-elakiya-123
+                    aws dynamodb describe-table --table-name game-terraform-state-locking --region ${AWS_REGION}
+                '''
             }
         }
 
-        
-        stage('Init Backend') {
+        stage('Init Main Terraform') {
             steps {
                 dir("${TF_DIR}") {
                     sh '''
-                    git checkout provider.tf
-                    terraform init -reconfigure
+                        rm -rf .terraform
+                        terraform init -reconfigure
                     '''
                 }
             }
         }
 
-        
         stage('Terraform Plan') {
             steps {
                 dir("${TF_DIR}") {
@@ -65,7 +62,6 @@ pipeline {
             }
         }
 
-        
         stage('Ansible Configuration') {
             steps {
                 dir("${ANSIBLE_DIR}") {
@@ -74,7 +70,6 @@ pipeline {
             }
         }
 
-        
         stage('Health Check') {
             steps {
                 dir("${TF_DIR}") {
@@ -84,7 +79,11 @@ pipeline {
 
                         retry(5) {
                             sleep time: 60, unit: 'SECONDS'
-                            def response = sh(script: "curl -s -o /dev/null -w '%{http_code}' http://${ALBDns}", returnStdout: true).trim()
+                            def response = sh(
+                                script: "curl -s -o /dev/null -w '%{http_code}' http://${ALBDns}",
+                                returnStdout: true
+                            ).trim()
+
                             if (response != "200") {
                                 error "Health check failed: ${response}"
                             }
